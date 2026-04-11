@@ -1,5 +1,6 @@
 import numpy as np
 import config
+import pandas as pd
 from src.utils import NIDSUtils
 from src.preprocessing import NIDSDataPreprocessor
 from src.model import CustomLogisticRegression

@@ -95,6 +95,9 @@ def main():
     logger.info("Saving trained weights to disk...")
     NIDSUtils.save_model(model.W, model.b, config.MODEL_SAVE_PATH)
 
+    logger.info("Saving preprocessor state to disk...")
+    NIDSUtils.save_preprocessor(preprocessor, config.MODEL_SAVE_PATH.replace('.npz', '_preprocessor.pkl'))
+
     logger.info(f"Evaluating with Decision Threshold = {config.DECISION_THRESHOLD}...")
     y_pred = model.predict(X_test_scaled, threshold=config.DECISION_THRESHOLD)
     

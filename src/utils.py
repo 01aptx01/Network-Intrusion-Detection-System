@@ -1,6 +1,7 @@
 import os
 import logging
 import numpy as np
+import pickle
 from datetime import datetime
 
 class NIDSUtils:
@@ -36,3 +37,19 @@ class NIDSUtils:
     def load_model(filepath: str) -> tuple:
         with np.load(filepath) as data:
             return data['W'], data['b'][0]
+        
+    @staticmethod
+    def save_preprocessor(preprocessor, filepath: str = "saved_models/preprocessor.pkl"):
+        """บันทึกสถานะของ Preprocessor (Mean, Std, Columns) ลงดิสก์"""
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, 'wb') as f:
+            pickle.dump(preprocessor, f)
+        print(f"[*] Preprocessor saved to {filepath}")
+
+    @staticmethod
+    def load_preprocessor(filepath: str = "saved_models/preprocessor.pkl"):
+        """กู้คืนสถานะของ Preprocessor กลับมาจากดิสก์"""
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"ไม่พบไฟล์ Preprocessor ที่: {filepath}")
+        with open(filepath, 'rb') as f:
+            return pickle.load(f)

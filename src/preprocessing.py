@@ -14,12 +14,15 @@ class NIDSDataPreprocessor:
         อนุญาตให้ใช้ Pandas เฉพาะขั้นตอนนี้
         """
         try:
-            df = pd.read_csv(filepath)
+            df = pd.read_csv(filepath, header=None)
         except FileNotFoundError:
             raise FileNotFoundError(f"ไม่พบไฟล์ข้อมูลที่: {filepath}")
 
         # สมมติว่าคอลัมน์สุดท้ายคือ Label (ปรับชื่อตามจริง)
-        target_col = df.columns[-1]
+        if df.shape[1] >= 43:
+            df = df.drop(columns=[42])
+
+        target_col = 41
         
         # 0 = normal, 1 = attack
         y = np.where(df[target_col] == 'normal', 0, 1)

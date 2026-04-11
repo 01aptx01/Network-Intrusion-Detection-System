@@ -1,62 +1,62 @@
 import numpy as np
-import pandas as pd
+import config
+from src.utils import NIDSUtils
 from src.preprocessing import NIDSDataPreprocessor
 from src.model import CustomLogisticRegression
 from src.evaluator import NIDSEvaluator
 
-def load_data(filepath: str):
-    """
-    อนุญาตให้ใช้ Pandas เฉพาะตอนอ่าน CSV ขึ้นมาเป็น DataFrame 
-    จากนั้นต้องแปลงเป็น NumPy Array ทันที
-    """
-    print(f"[*] Loading dataset from {filepath}...")
-    df = pd.read_csv(filepath)
-    
-    # สมมติว่าคอลัมน์สุดท้ายชื่อ 'label' (0=Normal, 1=Attack)
-    X = df.drop('label', axis=1).values 
-    y = df['label'].values
-    return X, y
+def generate_mock_data():
+    """ใช้ในกรณีที่คุณยังโหลดไฟล์ NSL-KDD CSV มาใส่โฟลเดอร์ data ไม่เป็น"""
+    np.random.seed(42)
+    X_train = np.random.randn(5000, 41) * 50
+    y_train = np.random.choice([0, 1], size=5000, p=[0.8, 0.2])
+    X_test = np.random.randn(1000, 41) * 50
+    y_test = np.random.choice([0, 1], size=1000, p=[0.8, 0.2])
+    return X_train, y_train, X_test, y_test
 
 def main():
-    # 1. โหลดข้อมูล (ในสถานการณ์จริง เปลี่ยนเป็น Path ของ NSL-KDD)
-    # X_train, y_train = load_data("data/raw/KDDTrain.csv")
-    # X_test, y_test = load_data("data/raw/KDDTest.csv")
-    
-    # [Mock Data สำหรับการทดสอบโค้ด: 1000 samples, 41 features]
-    print("[*] Generating Mock Data for Pipeline Testing...")
-    np.random.seed(42)
-    X_train = np.random.randn(1000, 41) * 100 
-    y_train = np.random.choice([0, 1], size=1000, p=[0.8, 0.2]) # Imbalance 80:20
-    X_test = np.random.randn(200, 41) * 100
-    y_test = np.random.choice([0, 1], size=200, p=[0.8, 0.2])
+    logger = NIDSUtils.setup_logger(config.LOG_DIR)
+    logger.info("🚀 Starting NIDS Pipeline...")
 
-    # 2. Data Preprocessing (ต้อง fit แค่ Train set เพื่อกัน Data Leakage!)
-    print("[*] Initializing Preprocessor and scaling data...")
     preprocessor = NIDSDataPreprocessor()
+
+    try:
+        # พยายามโหลดไฟล์จริงก่อน
+        logger.info(f"Loading training data from {config.DATA_PATH_TRAIN}...")
+        X_train, y_train = preprocessor.load_data(config.DATA_PATH_TRAIN, is_train=True)
+        X_test, y_test = preprocessor.load_data(config.DATA_PATH_TEST, is_train=False)
+    except FileNotFoundError:
+        logger.warning("⚠️ Real CSV data not found! Falling back to Mock Data generation.")
+        X_train, y_train, X_test, y_test = generate_mock_data()
+
+    logger.info("Applying Z-Score Normalization...")
     X_train_scaled = preprocessor.fit_transform(X_train)
     X_test_scaled = preprocessor.transform(X_test)
 
-    # คำนวณ Class Weights ตามหลักคณิตศาสตร์ที่เราคุยกัน
     weights = preprocessor.calculate_class_weights(y_train)
-    weight_attack = weights[1] / weights[0] # หา Ratio ของน้ำหนัก
-    print(f"[*] Calculated Attack Penalty Weight: {weight_attack:.2f}x")
+    attack_penalty = weights[1] / weights[0]
+    logger.info(f"Class Imbalance Penalty Weight (Attack vs Normal): {attack_penalty:.2f}x")
 
-    # 3. Model Initialization & Training
-    print("[*] Initializing Custom Logistic Regression Model...")
-    model = CustomLogisticRegression(learning_rate=0.01, epochs=2000)
+    logger.info("Initializing & Training Model...")
+    model = CustomLogisticRegression(
+        learning_rate=config.LEARNING_RATE,
+        epochs=config.EPOCHS,
+        batch_size=config.BATCH_SIZE
+    )
     
-    print("[*] Training Model with Gradient Descent (This might take a moment)...")
-    # หมายเหตุ: ใน model.py คุณต้องนำ weight_attack ไปใช้ตามที่ผมสอนไปก่อนหน้า
-    model.fit(X_train_scaled, y_train, weight_attack=weight_attack)
+    # ส่ง logger เข้าไปเพื่อให้ปรินต์ Loss ในแต่ละ Epoch ลงไฟล์ได้
+    model.fit(X_train_scaled, y_train, weight_attack=attack_penalty, logger=logger)
 
-    # 4. Evaluation
-    print("[*] Predicting on Test Set...")
-    # ทายผลลัพธ์ (ได้เป็น 0 หรือ 1)
-    y_pred = model.predict(X_test_scaled, threshold=0.5)
+    logger.info("Saving trained weights to disk...")
+    NIDSUtils.save_model(model.W, model.b, config.MODEL_SAVE_PATH)
 
-    print("[*] Running Evaluation Metrics...")
+    logger.info(f"Evaluating with Decision Threshold = {config.DECISION_THRESHOLD}...")
+    y_pred = model.predict(X_test_scaled, threshold=config.DECISION_THRESHOLD)
+    
     evaluator = NIDSEvaluator(y_test, y_pred)
-    evaluator.report()
+    evaluator.report(logger=logger)
+    
+    logger.info("✅ Pipeline Execution Finished.")
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,8 @@
 Network-Intrusion-Detection-System (Python)
 - config.py, main.py, requirements.txt, README.md
-- src/: preprocessing.py, model.py, evaluator.py, utils.py
-- data/raw/: KDDTrain+.txt, KDDTest+.txt, nsl-kdd/ (สำเนา/เอกสาร)
-- scripts/generate_readme_images.py
+- src/: preprocessing.py (IntrusionDatasetPreprocessor), model.py (BinaryLogisticRegression), metrics.py (BinaryClassifierMetrics), artifacts.py (ArtifactStore)
+- data/raw/: KDDTrain+.txt, KDDTest+.txt, nsl-kdd/
+- scripts/: generate_readme_images.py, build_all_in_one_notebook.py
+- notebooks/NIDS_All_In_One.ipynb
 - docs/images/*.png
-- logs/, saved_models/ (สร้างเมื่อรัน; ใน .gitignore)
+- logs/, saved_models/ (gitignored)

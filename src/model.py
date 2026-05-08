@@ -1,71 +1,79 @@
+import logging
+from typing import Optional
+
 import numpy as np
 
-class CustomLogisticRegression:
+
+class BinaryLogisticRegression:
+    """Logistic regression สองคลาสด้วย NumPy (mini-batch) + ถ่วง gradient ฝั่ง attack"""
+
     def __init__(self, learning_rate: float, epochs: int, batch_size: int):
-        self.lr = learning_rate
+        self.learning_rate = learning_rate
         self.epochs = epochs
         self.batch_size = batch_size
-        self.W = None
-        self.b = None
+        self.weights = None
+        self.bias = None
         self.loss_history = []
 
     def _sigmoid(self, z: np.ndarray) -> np.ndarray:
         z = np.clip(z, -250, 250)
         return 1.0 / (1.0 + np.exp(-z))
 
-    def fit(self, X: np.ndarray, y: np.ndarray, weight_attack: float = 1.0, logger=None):
-        N, M = X.shape
-        self.W = np.zeros((M, 1))
-        self.b = 0.0
-        y = y.reshape(-1, 1)
+    def fit(
+        self,
+        features: np.ndarray,
+        labels: np.ndarray,
+        attack_loss_weight: float = 1.0,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
+        num_samples, num_features = features.shape
+        self.weights = np.zeros((num_features, 1))
+        self.bias = 0.0
+        labels = labels.reshape(-1, 1)
 
         for epoch in range(self.epochs):
-            # 1. Random Shuffle (กันโมเดลจำแพทเทิร์นข้อมูล)
-            indices = np.arange(N)
+            indices = np.arange(num_samples)
             np.random.shuffle(indices)
-            X_shuffled = X[indices]
-            y_shuffled = y[indices]
+            features_shuffled = features[indices]
+            labels_shuffled = labels[indices]
 
-            epoch_loss = 0
+            epoch_loss = 0.0
             num_batches = 0
 
-            # 2. Mini-Batch Gradient Descent
-            for i in range(0, N, self.batch_size):
-                X_batch = X_shuffled[i : i + self.batch_size]
-                y_batch = y_shuffled[i : i + self.batch_size]
-                batch_N = X_batch.shape[0]
+            for start in range(0, num_samples, self.batch_size):
+                batch_x = features_shuffled[start : start + self.batch_size]
+                batch_y = labels_shuffled[start : start + self.batch_size]
+                batch_size_actual = batch_x.shape[0]
 
-                # Forward Pass
-                Z = np.dot(X_batch, self.W) + self.b
-                y_hat = self._sigmoid(Z)
+                logits = np.dot(batch_x, self.weights) + self.bias
+                predictions = self._sigmoid(logits)
 
-                # Cost
                 epsilon = 1e-15
-                batch_loss = -np.mean(y_batch * np.log(y_hat + epsilon) + (1 - y_batch) * np.log(1 - y_hat + epsilon))
+                batch_loss = -np.mean(
+                    batch_y * np.log(predictions + epsilon)
+                    + (1 - batch_y) * np.log(1 - predictions + epsilon)
+                )
                 epoch_loss += batch_loss
                 num_batches += 1
 
-                # Backward Pass พร้อม Class Weights สำหรับ Imbalanced Data
-                C = 1.0 + y_batch * (weight_attack - 1.0)
-                dZ = (y_hat - y_batch) * C
+                weight_multiplier = 1.0 + batch_y * (attack_loss_weight - 1.0)
+                delta = (predictions - batch_y) * weight_multiplier
 
-                # Gradients
-                dW = (1 / batch_N) * np.dot(X_batch.T, dZ)
-                db = (1 / batch_N) * np.sum(dZ)
+                grad_weights = (1 / batch_size_actual) * np.dot(batch_x.T, delta)
+                grad_bias = (1 / batch_size_actual) * np.sum(delta)
 
-                # Update
-                self.W -= self.lr * dW
-                self.b -= self.lr * db
+                self.weights -= self.learning_rate * grad_weights
+                self.bias -= self.learning_rate * grad_bias
 
-            avg_loss = epoch_loss / num_batches
-            self.loss_history.append(avg_loss)
-            
-            if (epoch + 1) % 10 == 0 and logger:
-                logger.info(f"Epoch {epoch+1:03d}/{self.epochs} | Loss: {avg_loss:.4f}")
+            average_loss = epoch_loss / num_batches
+            self.loss_history.append(average_loss)
 
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        Z = np.dot(X, self.W) + self.b
-        return self._sigmoid(Z)
+            if (epoch + 1) % 10 == 0 and logger is not None:
+                logger.info(f"Epoch {epoch + 1:03d}/{self.epochs} | Loss: {average_loss:.4f}")
 
-    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
-        return (self.predict_proba(X) >= threshold).astype(int).flatten()
+    def predict_proba(self, features: np.ndarray) -> np.ndarray:
+        logits = np.dot(features, self.weights) + self.bias
+        return self._sigmoid(logits)
+
+    def predict(self, features: np.ndarray, decision_threshold: float = 0.5) -> np.ndarray:
+        return (self.predict_proba(features) >= decision_threshold).astype(int).flatten()

@@ -47,7 +47,7 @@
 | ภาษา | Python 3.x |
 | ไลบรารีหลัก | `numpy`, `pandas` (pandas ใช้หนักที่ขั้นโหลด/ one-hot) |
 | ห้ามใช้ (ตามสเปกโปรเจกต์) | `scikit-learn`, `xgboost`, `tensorflow`, `pytorch` |
-| โมเดล | `CustomLogisticRegression` ใน `src/model.py` |
+| โมเดล | `BinaryLogisticRegression` ใน `src/model.py` |
 
 สคริปต์ `scripts/generate_readme_images.py` ใช้ **matplotlib** เฉพาะตอนสร้างภาพใน `docs/images/` ไม่ได้เป็นส่วนของ pipeline ฝึกโมเดล
 
@@ -88,16 +88,19 @@ python scripts/generate_readme_images.py
 ├── main.py                # orchestrator: โหลด → scale → train → save → evaluate
 ├── requirements.txt       # numpy, pandas
 ├── scripts/
-│   └── generate_readme_images.py
+│   ├── generate_readme_images.py
+│   └── build_all_in_one_notebook.py
+├── notebooks/
+│   └── NIDS_All_In_One.ipynb   # สร้าง/ซิงก์จาก src ด้วย scripts/build_all_in_one_notebook.py
 ├── docs/
 │   └── images/            # ภาพประกอบ README
 ├── data/
 │   └── raw/               # NSL-KDD (.txt); มีสำเนาใต้ data/raw/nsl-kdd/ ด้วย
 ├── src/
-│   ├── preprocessing.py   # โหลด CSV/TXT, one-hot, Z-score, class weights
-│   ├── model.py           # logistic regression (NumPy)
-│   ├── evaluator.py       # confusion + precision / recall / F1
-│   └── utils.py           # logging, save/load weights & preprocessor
+│   ├── preprocessing.py   # IntrusionDatasetPreprocessor
+│   ├── model.py           # BinaryLogisticRegression (NumPy)
+│   ├── metrics.py         # BinaryClassifierMetrics
+│   └── artifacts.py       # ArtifactStore — log, save/load weights & preprocessor
 ├── logs/                  # log รันล่าสุด (สร้างเมื่อรัน)
 └── saved_models/          # .npz weights + preprocessor .pkl (สร้างเมื่อรัน)
 ```
@@ -106,7 +109,7 @@ python scripts/generate_readme_images.py
 
 ## Commit messages
 
-ใช้แนว **Conventional Commits**: `type(scope): subject` เช่น `feat(model): ...`, `docs(readme): ...`, `fix(evaluator): ...`
+ใช้แนว **Conventional Commits**: `type(scope): subject` เช่น `feat(model): ...`, `docs(readme): ...`, `fix(metrics): ...`
 
 ---
 

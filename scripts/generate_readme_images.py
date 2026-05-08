@@ -28,7 +28,7 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(8, 4.5))
     bars = ax.bar(labels, values, color=colors, edgecolor="#2c3e50", linewidth=0.8)
     ax.set_ylabel("Count")
-    ax.set_title("NIDS evaluation — confusion components (KDDTest+)")
+    ax.set_title("Binary classifier evaluation — confusion components (KDDTest+)")
     for b, v in zip(bars, values):
         ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 80, str(v), ha="center", fontsize=11)
     ax.set_ylim(0, max(values) * 1.12)
@@ -43,7 +43,7 @@ def main() -> None:
         "Load NSL-KDD\n(train/test)",
         "One-hot +\nZ-score",
         "Class weights\n(imbalance)",
-        "Custom logistic\nregression",
+        "Binary logistic\nregression (NumPy)",
         "Threshold +\nmetrics + weights",
     ]
     x = [0, 2, 4, 6, 8]

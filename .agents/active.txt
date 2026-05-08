@@ -1,3 +1,3 @@
-Status: README และ docs/images อัปเดตแล้ว; config ชี้ไปที่ KDDTrain+.txt / KDDTest+.txt
-Last change: 2026-05-09 — แก้ encoding คอนโซลใน main.py, FileHandler UTF-8 ใน utils.py
-Next: ไม่มีงานค้างจากเซสชันนี้ (ถ้าต้องการปรับ recall/FN ให้ลอง threshold / โมเดลเพิ่ม)
+Status: refactor ชื่อคลาส/โมดูลให้สอดคล้อง PEP 8 และความหมายชัด (artifacts, metrics, BinaryLogisticRegression, …)
+Last change: 2026-05-09 — ลบ src/utils.py, evaluator.py; เพิ่ม artifacts.py, metrics.py; notebook สร้างจาก scripts/build_all_in_one_notebook.py
+Next: ไม่มีงานค้าง

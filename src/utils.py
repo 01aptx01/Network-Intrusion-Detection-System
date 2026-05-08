@@ -17,7 +17,7 @@ class NIDSUtils:
         logger.setLevel(logging.INFO)
 
         if not logger.handlers:
-            fh = logging.FileHandler(log_file)
+            fh = logging.FileHandler(log_file, encoding="utf-8")
             ch = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - [%(levelname)s] - %(message)s')
             fh.setFormatter(formatter)

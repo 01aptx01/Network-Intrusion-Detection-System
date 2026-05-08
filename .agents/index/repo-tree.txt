@@ -1,0 +1,7 @@
+Network-Intrusion-Detection-System (Python)
+- config.py, main.py, requirements.txt, README.md
+- src/: preprocessing.py, model.py, evaluator.py, utils.py
+- data/raw/: KDDTrain+.txt, KDDTest+.txt, nsl-kdd/ (สำเนา/เอกสาร)
+- scripts/generate_readme_images.py
+- docs/images/*.png
+- logs/, saved_models/ (สร้างเมื่อรัน; ใน .gitignore)

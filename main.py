@@ -110,4 +110,12 @@ def main():
     logger.info("✅ Pipeline Execution Finished.")
 
 if __name__ == "__main__":
+    import sys
+
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, AttributeError):
+                pass
     main()

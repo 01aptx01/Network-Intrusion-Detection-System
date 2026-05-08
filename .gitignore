@@ -1,2 +1,7 @@
 .env
+__pycache__/
+*.py[cod]
+logs/
+saved_models/
+
 # raw

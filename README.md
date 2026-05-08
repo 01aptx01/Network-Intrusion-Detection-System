@@ -1,64 +1,115 @@
-# 🛡️ Anomaly-Based Network Intrusion Detection System (From Scratch)
+# Network Intrusion Detection System (NIDS)
 
-## 📌 Project Overview
-โปรเจกต์นี้มีวัตถุประสงค์เพื่อสร้างระบบตรวจจับการบุกรุกในเครือข่าย (NIDS) เพื่อจำแนกประเภท Traffic ระหว่างพฤติกรรมปกติ (Normal) และการโจมตี (Attack) โดยพัฒนาระบบคณิตศาสตร์และ Machine Learning Algorithm ขึ้นมาเองจากศูนย์ (From Scratch) ด้วย Object-Oriented Programming (OOP) 
+โปรเจกต์นี้เป็น **ระบบจำแนกทราฟฟิกเครือข่ายแบบจุดเดียว (binary)** ว่าเป็นพฤติกรรมปกติ (`normal`) หรือการโจมตี (`attack`) โดยใช้ชุดข้อมูล **NSL-KDD** เป็นฐาน และใช้ **Logistic Regression ที่เขียนเองด้วย NumPy** (mini-batch gradient descent, class weight ใน loss) โดยไม่พึ่ง Scikit-learn / PyTorch / TensorFlow
 
-เป้าหมายสูงสุดคือการสร้างสมการคำนวณผ่าน Matrix Operations เพื่อความรวดเร็ว และปรับแต่ง Loss Function เพื่อลดค่า **False Negative Rate** ให้เหลือน้อยที่สุดสำหรับชุดข้อมูลที่มีความไม่สมดุลสูง (Highly Imbalanced Data)
+สิ่งที่รันได้จริงใน repo นี้:
 
----
-
-## 📊 Dataset
-ใช้ชุดข้อมูล **NSL-KDD** ซึ่งเป็น Benchmark ที่ได้รับการยอมรับในงานวิจัยด้าน Cybersecurity
-* **Features:** 41 features (Basic, Content, and Traffic features)
-* **Target:** Binary Classification (`0` = Normal, `1` = Attack)
+1. โหลด train/test จากไฟล์ดิบ NSL-KDD (`.txt` คอมมาแยกฟิลด์)
+2. แปลง categorical เป็น one-hot (`pandas.get_dummies`) แล้ว Z-score จากสถิติชุด train
+3. คำนวณ class weights จากความไม่สมดุลของคลาส แล้วฝึกโมเดล
+4. บันทึกน้ำหนัก (`saved_models/nids_weights.npz`) และสถานะ preprocessor (`.pkl`)
+5. ประเมินด้วย confusion components + precision / recall / F1 และรายงาน feature importance จากค่า weight
 
 ---
 
-## 🛠 Tech Stack & Strict Constraints
-โปรเจกต์นี้อยู่ภายใต้ข้อจำกัดทางวิศวกรรมขั้นสูงสุด:
-* **Language:** Python 3.x
-* **Permitted Libraries:** `NumPy` (สำหรับการประมวลผล Matrix/Linear Algebra), `Pandas` (สำหรับการโหลดข้อมูลเบื้องต้นเท่านั้น)
-* **🚫 Forbidden Libraries:** ห้ามใช้ `Scikit-learn`, `XGBoost`, `TensorFlow`, `PyTorch` โดยเด็ดขาด
-* **Core Algorithm:** Custom Logistic Regression (NumPy Implementation) พร้อมระบบจัดการ Class Weights ใน Loss Function
+## ภาพประกอบ (ภาพรวม)
+
+| Pipeline (main.py) | ตัวอย่างผล evaluation (จำนวนตัวอย่างต่อช่อง) |
+| :---: | :---: |
+| ![Pipeline overview](docs/images/pipeline_overview.png) | ![Evaluation counts](docs/images/evaluation_counts.png) |
+
+แท่งสีแดง (**FN** — missed attacks) ช่วยให้เห็นข้อจำกัดของ threshold / โมเดลเชิงเส้นในข้อมูลจริงได้ทันที
 
 ---
 
-## 🏗 Project Structure
+## ตัวเลขอ้างอิงจากการรันจริง (เครื่องพัฒนา)
 
+รันครั้งล่าสุดที่ใช้ยืนยัน README: `python main.py` บนชุด **KDDTrain+.txt** / **KDDTest+.txt** ใน `data/raw/` พร้อมค่าใน `config.py` ณ ขณะนั้น (`LEARNING_RATE=0.05`, `EPOCHS=50`, `BATCH_SIZE=128`, `DECISION_THRESHOLD=0.4`)
+
+| Metric | Value |
+|--------|------:|
+| TP (caught attacks) | 8088 |
+| TN (normal) | 8943 |
+| FP (false alarms) | 768 |
+| FN (missed attacks) | 4745 |
+| Precision | 0.9133 |
+| Recall | 0.6303 |
+| F1-score | 0.7458 |
+
+ค่าจะเปลี่ยนตาม threshold, epoch, learning rate และการสุ่มลำดับ mini-batch
+
+---
+
+## Tech stack และข้อจำกัด
+
+| รายการ | รายละเอียด |
+|--------|------------|
+| ภาษา | Python 3.x |
+| ไลบรารีหลัก | `numpy`, `pandas` (pandas ใช้หนักที่ขั้นโหลด/ one-hot) |
+| ห้ามใช้ (ตามสเปกโปรเจกต์) | `scikit-learn`, `xgboost`, `tensorflow`, `pytorch` |
+| โมเดล | `CustomLogisticRegression` ใน `src/model.py` |
+
+สคริปต์ `scripts/generate_readme_images.py` ใช้ **matplotlib** เฉพาะตอนสร้างภาพใน `docs/images/` ไม่ได้เป็นส่วนของ pipeline ฝึกโมเดล
+
+---
+
+## ความต้องการของระบบและการติดตั้ง
+
+```text
+pip install -r requirements.txt
 ```
-├── config.py                 # เก็บ Hyperparameters (LR, Epochs) และ File Paths
+
+ไฟล์ดิบ NSL-KDD วางที่ `data/raw/KDDTrain+.txt` และ `data/raw/KDDTest+.txt` (ปรับ path ได้ที่ `config.py`)
+
+รัน pipeline ทั้งก้อน:
+
+```text
+python main.py
+```
+
+- Log ไฟล์อยู่ในโฟลเดอร์ `logs/`
+- น้ำหนักและ preprocessor อยู่ใน `saved_models/`
+
+สร้างภาพ README ใหม่ (ต้องติดตั้ง matplotlib แยก):
+
+```text
+pip install matplotlib
+python scripts/generate_readme_images.py
+```
+
+บน Windows ถ้าเทอร์มินัลยังแสดง emoji ไม่ครบ ให้ตั้ง `PYTHONUTF8=1` หรือใช้เทอร์มินัลที่รองรับ UTF-8; โค้ดจะพยายาม `reconfigure` stdout/stderr เป็น UTF-8 เมื่อเริ่ม `main.py`
+
+---
+
+## โครงสร้างโปรเจกต์ (ปัจจุบัน)
+
+```text
+├── config.py              # path ข้อมูล, hyperparameters, threshold
+├── main.py                # orchestrator: โหลด → scale → train → save → evaluate
+├── requirements.txt       # numpy, pandas
+├── scripts/
+│   └── generate_readme_images.py
+├── docs/
+│   └── images/            # ภาพประกอบ README
 ├── data/
-│   ├── raw/                  # เก็บข้อมูลดิบ NSL-KDD (Read-only)
-│   └── processed/            # เก็บข้อมูลที่ผ่าน Z-score Standardization แล้ว
-├── notebooks/                # สำหรับ EDA พื้นฐาน
-├── saved_models/             # เก็บไฟล์ .npy ของ Weight Matrix และ Bias
+│   └── raw/               # NSL-KDD (.txt); มีสำเนาใต้ data/raw/nsl-kdd/ ด้วย
 ├── src/
-│   ├── preprocessing.py      # Data Loading, Z-score, Class Imbalance Calculation
-│   ├── model.py              # Logistic Regression class (NumPy only, Gradient Descent)
-│   ├── evaluator.py          # Custom Confusion Matrix, Precision, Recall, F1-Score
-│   └── utils.py              # ระบบ Logging 
-├── main.py                   # Orchestrator สั่งรัน Pipeline ทั้งหมด
-├── requirements.txt          # รายการ Dependencies (numpy, pandas)
-├── .gitignore 
-└── README.md                 # เอกสารอธิบายโปรเจกต์
+│   ├── preprocessing.py   # โหลด CSV/TXT, one-hot, Z-score, class weights
+│   ├── model.py           # logistic regression (NumPy)
+│   ├── evaluator.py       # confusion + precision / recall / F1
+│   └── utils.py           # logging, save/load weights & preprocessor
+├── logs/                  # log รันล่าสุด (สร้างเมื่อรัน)
+└── saved_models/          # .npz weights + preprocessor .pkl (สร้างเมื่อรัน)
 ```
 
-## 📝 Commit Message Guide
+---
 
-ใช้หลักการ **Conventional Commits** เพื่อความเป็นระเบียบและเป็นมาตรฐานสากล
+## Commit messages
 
-**Format:** `type(scope): subject`
+ใช้แนว **Conventional Commits**: `type(scope): subject` เช่น `feat(model): ...`, `docs(readme): ...`, `fix(evaluator): ...`
 
-**หัวข้อ (Type) ที่ควรใช้:**
+---
 
--   **feat:** เพิ่มฟีเจอร์ใหม่ (New Feature)
-    
--   **fix:** แก้บั๊ก (Bug Fix)
-    
--   **docs:** แก้ไขเอกสาร เช่น README (Documentation)
-    
--   **style:** จัด format โค้ด, เติม semicolon (ไม่กระทบ logic)
-    
--   **refactor:** รื้อโค้ด เขียนใหม่ให้ดีขึ้น แต่ผลลัพธ์เหมือนเดิม
-    
--   **chore:** งานจุกจิก เช่น อัปเดต version, แก้ .gitignore
+## แหล่งข้อมูล
+
+- NSL-KDD เป็น benchmark ที่ใช้กันแพร่หลายในงานวิจัยด้าน intrusion detection; รายละเอียดฟิลด์และความหมายของค่า label ดูจากเอกสารชุดข้อมูลต้นทาง

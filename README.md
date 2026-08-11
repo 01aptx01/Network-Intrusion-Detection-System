@@ -5,12 +5,12 @@
 </div>
 
 ## 📌 Project Overview
-This project implements a Network Intrusion Detection System (NIDS) as a binary classifier (normal vs. attack) using the **NSL-KDD** dataset. The core model is a **Logistic Regression** built from scratch using NumPy with mini-batch gradient descent and class weight adjustments, completely independent of heavy ML frameworks like Scikit-learn, PyTorch, or TensorFlow.
+This project implements a Network Intrusion Detection System (NIDS) as a binary classifier (normal vs. attack) using the **NSL-KDD** dataset. The core model focuses on **Logistic Regression** and robust data pipelines, utilizing standard machine learning frameworks like **Scikit-learn** to ensure production-ready quality and maintainability.
 
 The project structure adheres to the industry-standard **Cookiecutter Data Science** methodology to ensure reproducibility, scalability, and maintainability.
 
 ## 🚀 Features
-- **Custom Logistic Regression**: Implemented purely in NumPy.
+- **Model Implementations**: Leveraging robust libraries like Scikit-learn alongside custom implementations.
 - **Robust Preprocessing**: Handles categorical variable one-hot encoding and Z-score normalization based on training statistics.
 - **Class Imbalance Handling**: Automatically calculates and applies class weights during model training.
 - **Comprehensive Evaluation**: Generates confusion matrix components, precision, recall, F1-score, and feature importance.
@@ -130,8 +130,7 @@ Reference results from running `main.py` on the **KDDTrain+.txt** and **KDDTest+
 ## 🛠️ Technology Stack
 
 - **Language:** Python 3.x
-- **Core Libraries:** `numpy`, `pandas` (used primarily for data loading and encoding)
-- **Constraints:** No `scikit-learn`, `xgboost`, `tensorflow`, or `pytorch` allowed per project specifications.
+- **Core Libraries:** `numpy`, `pandas`, `scikit-learn`
 
 ## 📝 Commit Guidelines
 

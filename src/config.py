@@ -20,7 +20,7 @@ DECISION_THRESHOLD = 0.4  # ปรับลดลงเพื่อลด False 
 
 # Model Configuration (Scikit-Learn)
 MODEL_CONFIG = {
-    "type": "logistic_regression",  # Options: "logistic_regression", "random_forest"
+    "type": "random_forest",  # Options: "logistic_regression", "random_forest"
     "params": {
         "logistic_regression": {
             "C": 1.0,
@@ -30,9 +30,11 @@ MODEL_CONFIG = {
         },
         "random_forest": {
             "n_estimators": 100,
-            "class_weight": "balanced",
+            "class_weight": "balanced_subsample",
             "max_depth": None,
+            "min_samples_split": 2,
             "random_state": 42,
+            "n_jobs": -1,
         },
     },
 }

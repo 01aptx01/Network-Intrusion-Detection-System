@@ -1,12 +1,11 @@
-"""Script for tuning Random Forest hyperparameters."""
+"""Script for tuning XGBoost hyperparameters."""
 
 import os
 import sys
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectPercentile, f_classif
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import ParameterGrid
+from xgboost import XGBClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score, classification_report
 
 from src import config
@@ -14,9 +13,9 @@ from src.data.preprocessing import IntrusionDatasetPreprocessor
 from src.features.build_features import build_feature_pipeline
 from src.models.artifacts import ArtifactStore
 
-def tune_random_forest():
+def tune_xgboost():
     logger = ArtifactStore.configure_logger(config.LOG_DIR)
-    logger.info("Starting Random Forest hyperparameter tuning...")
+    logger.info("Starting XGBoost hyperparameter tuning...")
 
     preprocessor = IntrusionDatasetPreprocessor()
     logger.info(f"Loading training data...")
@@ -25,18 +24,18 @@ def tune_random_forest():
 
     transformer = build_feature_pipeline(features_train)
 
-    # 10 predefined configurations for Random Forest
+    # 10 predefined configurations for XGBoost
     param_grid = [
-        {"n_estimators": 100, "max_depth": None, "min_samples_split": 2, "class_weight": "balanced"}, # 1. Default (Good baseline)
-        {"n_estimators": 200, "max_depth": None, "min_samples_split": 2, "class_weight": "balanced"}, # 2. More trees
-        {"n_estimators": 100, "max_depth": 50, "min_samples_split": 2, "class_weight": "balanced"}, # 3. Limit depth slightly
-        {"n_estimators": 100, "max_depth": None, "min_samples_split": 5, "class_weight": "balanced"}, # 4. Require more samples to split
-        {"n_estimators": 100, "max_depth": None, "min_samples_split": 2, "class_weight": "balanced_subsample"}, # 5. Different weighting
-        {"n_estimators": 200, "max_depth": 50, "min_samples_split": 5, "class_weight": "balanced"}, # 6. Mixed regularization
-        {"n_estimators": 50, "max_depth": None, "min_samples_split": 2, "class_weight": "balanced"}, # 7. Fewer trees (faster, maybe less overfit)
-        {"n_estimators": 100, "max_depth": None, "min_samples_split": 10, "class_weight": "balanced"}, # 8. Stronger split constraint
-        {"n_estimators": 300, "max_depth": None, "min_samples_split": 2, "class_weight": "balanced"}, # 9. Very large forest
-        {"n_estimators": 200, "max_depth": None, "min_samples_split": 2, "class_weight": None}, # 10. No class weighting
+        {"n_estimators": 100, "max_depth": 6, "learning_rate": 0.1, "scale_pos_weight": 1}, # Default
+        {"n_estimators": 200, "max_depth": 6, "learning_rate": 0.1, "scale_pos_weight": 5}, # Higher weight for minority
+        {"n_estimators": 100, "max_depth": 10, "learning_rate": 0.1, "scale_pos_weight": 10}, # Deeper, higher weight
+        {"n_estimators": 200, "max_depth": 10, "learning_rate": 0.05, "scale_pos_weight": 5}, # Slower learning
+        {"n_estimators": 300, "max_depth": 6, "learning_rate": 0.01, "scale_pos_weight": 10}, # Very slow learning
+        {"n_estimators": 100, "max_depth": 3, "learning_rate": 0.2, "scale_pos_weight": 1}, # Shallow, fast learning
+        {"n_estimators": 200, "max_depth": 6, "learning_rate": 0.1, "scale_pos_weight": 20}, # Very high weight
+        {"n_estimators": 150, "max_depth": 8, "learning_rate": 0.05, "scale_pos_weight": 10}, # Balanced
+        {"n_estimators": 100, "max_depth": 6, "learning_rate": 0.3, "scale_pos_weight": 5}, # Faster learning
+        {"n_estimators": 250, "max_depth": 12, "learning_rate": 0.05, "scale_pos_weight": 10}, # Complex model
     ]
 
     best_score = 0
@@ -49,7 +48,7 @@ def tune_random_forest():
         logger.info(f"--- Testing config {i+1}/10: {params} ---")
         
         # Build pipeline
-        model = RandomForestClassifier(random_state=42, n_jobs=-1, **params)
+        model = XGBClassifier(random_state=42, n_jobs=-1, **params)
         pipeline = Pipeline(
             steps=[
                 ("preprocessor", transformer),
@@ -97,8 +96,8 @@ def tune_random_forest():
     logger.info("==========================================")
 
     # Save results to a CSV for easy viewing
-    pd.DataFrame(results).to_csv(os.path.join(config.LOG_DIR, "rf_tuning_results.csv"), index=False)
-    logger.info("Results saved to rf_tuning_results.csv")
+    pd.DataFrame(results).to_csv(os.path.join(config.LOG_DIR, "xgb_tuning_results.csv"), index=False)
+    logger.info("Results saved to xgb_tuning_results.csv")
 
 if __name__ == "__main__":
-    tune_random_forest()
+    tune_xgboost()

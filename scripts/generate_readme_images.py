@@ -23,7 +23,7 @@ def main() -> None:
 
     # 1) สรุปผลจากรัน pipeline จริง (NSL-KDD KDDTest+.txt, threshold=0.4, config ปัจจุบัน)
     labels = ("TP\n(Caught)", "TN\n(Normal)", "FP\n(False alarm)", "FN\n(Missed)")
-    values = (8088, 8943, 768, 4745)
+    values = (8580, 9422, 289, 4253)
     colors = ("#2ecc71", "#3498db", "#f39c12", "#e74c3c")
 
     fig, ax = plt.subplots(figsize=(8, 4.5))
@@ -48,10 +48,10 @@ def main() -> None:
     ax.axis("off")
     boxes = [
         "Load NSL-KDD\n(train/test)",
-        "One-hot +\nZ-score",
-        "Class weights\n(imbalance)",
-        "Binary logistic\nregression (NumPy)",
-        "Threshold +\nmetrics + weights",
+        "Preprocess\n(Encode/Scale)",
+        "Feature Select\n(Percentile=50)",
+        "XGBoost / Tree\nClassifier",
+        "Threshold +\nMetrics Eval",
     ]
     x = [0, 2, 4, 6, 8]
     y = [0.5] * 5

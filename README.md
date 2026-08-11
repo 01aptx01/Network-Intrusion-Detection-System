@@ -176,13 +176,13 @@ Reference results from running the standard pipeline on the **NSL-KDD** dataset.
 
 | Metric | Value |
 |--------|------:|
-| **True Positives (Caught Attacks)** | 8,088 |
-| **True Negatives (Normal Traffic)** | 8,943 |
-| **False Positives (False Alarms)** | 768 |
-| **False Negatives (Missed Attacks)** | 4,745 |
-| **Precision** | 0.9133 |
-| **Recall** | 0.6303 |
-| **F1-score** | 0.7458 |
+| **True Positives (Caught Attacks)** | 8,580 |
+| **True Negatives (Normal Traffic)** | 9,422 |
+| **False Positives (False Alarms)** | 289 |
+| **False Negatives (Missed Attacks)** | 4,253 |
+| **Precision** | 0.9674 |
+| **Recall** | 0.6686 |
+| **F1-score** | 0.7907 |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -20,7 +20,7 @@ DECISION_THRESHOLD = 0.4  # ปรับลดลงเพื่อลด False 
 
 # Model Configuration (Scikit-Learn)
 MODEL_CONFIG = {
-    "type": "random_forest",  # Options: "logistic_regression", "random_forest"
+    "type": "lightgbm",  # Options: "logistic_regression", "random_forest", "lightgbm", "xgboost", "catboost"
     "params": {
         "logistic_regression": {
             "C": 1.0,
@@ -30,11 +30,36 @@ MODEL_CONFIG = {
         },
         "random_forest": {
             "n_estimators": 100,
-            "class_weight": "balanced_subsample",
+            "class_weight": "balanced",
             "max_depth": None,
-            "min_samples_split": 2,
+            "min_samples_split": 5,
             "random_state": 42,
             "n_jobs": -1,
+        },
+        "lightgbm": {
+            "n_estimators": 300,
+            "max_depth": -1,
+            "learning_rate": 0.01,
+            "scale_pos_weight": 10,
+            "random_state": 42,
+            "n_jobs": -1,
+            "verbose": -1,
+        },
+        "xgboost": {
+            "n_estimators": 300,
+            "max_depth": 6,
+            "learning_rate": 0.01,
+            "scale_pos_weight": 10,
+            "random_state": 42,
+            "n_jobs": -1,
+        },
+        "catboost": {
+            "iterations": 300,
+            "depth": 6,
+            "learning_rate": 0.01,
+            "scale_pos_weight": 10,
+            "random_state": 42,
+            "verbose": False,
         },
     },
 }

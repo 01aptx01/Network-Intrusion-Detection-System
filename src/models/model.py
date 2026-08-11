@@ -2,6 +2,9 @@
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
 
 class ModelFactory:
@@ -16,5 +19,11 @@ class ModelFactory:
             return LogisticRegression(**params)
         elif model_type == "random_forest":
             return RandomForestClassifier(**params)
+        elif model_type == "lightgbm":
+            return LGBMClassifier(**params)
+        elif model_type == "xgboost":
+            return XGBClassifier(**params)
+        elif model_type == "catboost":
+            return CatBoostClassifier(**params)
         else:
             raise ValueError(f"Unknown model type: {model_type}")

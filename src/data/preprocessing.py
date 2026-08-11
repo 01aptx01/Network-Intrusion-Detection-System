@@ -3,7 +3,14 @@
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import (
+    OneHotEncoder,
+    StandardScaler,
+    QuantileTransformer,
+    PolynomialFeatures,
+    KBinsDiscretizer,
+)
+from sklearn.pipeline import Pipeline
 
 
 class IntrusionDatasetPreprocessor:
@@ -39,7 +46,11 @@ class IntrusionDatasetPreprocessor:
     def create_preprocessor(self, features_frame: pd.DataFrame) -> ColumnTransformer:
         """Creates a scikit-learn ColumnTransformer for preprocessing.
         
-        Applies StandardScaler to numeric columns and OneHotEncoder to categorical columns.
+        Applies advanced feature engineering:
+        - QuantileTransformer for skewness reduction
+        - PolynomialFeatures for interactions
+        - KBinsDiscretizer for non-linear bucketing
+        - OneHotEncoder with rare category grouping
 
         Args:
             features_frame (pd.DataFrame): DataFrame containing the input features.
@@ -54,12 +65,30 @@ class IntrusionDatasetPreprocessor:
             exclude=["object", "string"]
         ).columns
 
-        numeric_transformer = StandardScaler()
-        categorical_transformer = OneHotEncoder(handle_unknown="ignore")
+        num_poly_transformer = Pipeline(
+            steps=[
+                ("quantile", QuantileTransformer(output_distribution="normal")),
+                (
+                    "poly",
+                    PolynomialFeatures(
+                        degree=2, interaction_only=True, include_bias=False
+                    ),
+                ),
+            ]
+        )
+
+        num_bin_transformer = KBinsDiscretizer(
+            n_bins=5, encode="onehot", strategy="uniform"
+        )
+
+        categorical_transformer = OneHotEncoder(
+            min_frequency=0.01, handle_unknown="ignore"
+        )
 
         preprocessor = ColumnTransformer(
             transformers=[
-                ("num", numeric_transformer, numeric_cols),
+                ("num_poly", num_poly_transformer, numeric_cols),
+                ("num_bin", num_bin_transformer, numeric_cols),
                 ("cat", categorical_transformer, categorical_cols),
             ]
         )

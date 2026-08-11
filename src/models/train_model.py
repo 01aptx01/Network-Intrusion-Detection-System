@@ -3,6 +3,7 @@
 import sys
 import numpy as np
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectPercentile, f_classif
 
 from src import config
 from src.data.preprocessing import IntrusionDatasetPreprocessor, synthesize_fallback_dataset
@@ -41,14 +42,19 @@ def train_pipeline():
         features_train, labels_train, features_test, labels_test = (
             synthesize_fallback_dataset()
         )
-
     logger.info("Creating preprocessor transformer...")
     transformer = build_feature_pipeline(features_train)
 
     logger.info(f"Instantiating model: {config.MODEL_CONFIG['type']}...")
     model = ModelFactory.get_model(config.MODEL_CONFIG)
 
-    pipeline = Pipeline(steps=[("preprocessor", transformer), ("classifier", model)])
+    pipeline = Pipeline(
+        steps=[
+            ("preprocessor", transformer),
+            ("feature_selection", SelectPercentile(score_func=f_classif, percentile=50)),
+            ("classifier", model),
+        ]
+    )
 
     logger.info("Training pipeline...")
     pipeline.fit(features_train, labels_train)

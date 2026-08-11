@@ -10,6 +10,18 @@ class IntrusionDatasetPreprocessor:
     """โหลด NSL-KDD และสร้าง scikit-learn preprocessor"""
 
     def load_data(self, filepath: str) -> tuple:
+        """Loads dataset from a CSV file.
+
+        Args:
+            filepath (str): Path to the dataset CSV file.
+
+        Returns:
+            tuple: A tuple containing (features_frame, labels) where features_frame
+                   is a pandas DataFrame of features and labels is a numpy array of targets.
+                   
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+        """
         try:
             frame = pd.read_csv(filepath, header=None)
         except FileNotFoundError:
@@ -25,7 +37,16 @@ class IntrusionDatasetPreprocessor:
         return features_frame, labels
 
     def create_preprocessor(self, features_frame: pd.DataFrame) -> ColumnTransformer:
-        """สร้างและคืนค่า scikit-learn ColumnTransformer"""
+        """Creates a scikit-learn ColumnTransformer for preprocessing.
+        
+        Applies StandardScaler to numeric columns and OneHotEncoder to categorical columns.
+
+        Args:
+            features_frame (pd.DataFrame): DataFrame containing the input features.
+
+        Returns:
+            ColumnTransformer: A configured scikit-learn ColumnTransformer pipeline.
+        """
         categorical_cols = features_frame.select_dtypes(
             include=["object", "string"]
         ).columns
@@ -46,7 +67,12 @@ class IntrusionDatasetPreprocessor:
 
 
 def synthesize_fallback_dataset() -> tuple:
-    """สร้างข้อมูลสุ่มเมื่อยังไม่มีไฟล์ NSL-KDD ใน data/raw"""
+    """Creates a random synthetic dataset if actual data is missing.
+    
+    Returns:
+        tuple: (features_train, labels_train, features_test, labels_test) 
+               containing synthetic DataFrames and label arrays.
+    """
     np.random.seed(42)
     features_train = pd.DataFrame(np.random.randn(5000, 41) * 50)
     features_train[1] = np.random.choice(["tcp", "udp", "icmp"], size=5000)

@@ -14,6 +14,19 @@ from src.visualization.visualize import analyze_feature_importance
 
 
 def train_pipeline():
+    """Main pipeline for training and evaluating the model.
+    
+    This function handles the end-to-end process:
+    1. Loading the dataset (or synthetic fallback).
+    2. Building the preprocessing pipeline.
+    3. Instantiating the model according to the config.
+    4. Training the Scikit-learn Pipeline (preprocessing + classifier).
+    5. Saving the trained model.
+    6. Evaluating the model and logging metrics (Precision, Recall, etc.).
+    
+    Returns:
+        Pipeline: The trained scikit-learn Pipeline object.
+    """
     logger = ArtifactStore.configure_logger(config.LOG_DIR)
     logger.info("Starting intrusion-detection training pipeline (scikit-learn)...")
 

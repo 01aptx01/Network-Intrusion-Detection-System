@@ -1,118 +1,143 @@
 # Network Intrusion Detection System (NIDS)
 
-โปรเจกต์นี้เป็น **ระบบจำแนกทราฟฟิกเครือข่ายแบบจุดเดียว (binary)** ว่าเป็นพฤติกรรมปกติ (`normal`) หรือการโจมตี (`attack`) โดยใช้ชุดข้อมูล **NSL-KDD** เป็นฐาน และใช้ **Logistic Regression ที่เขียนเองด้วย NumPy** (mini-batch gradient descent, class weight ใน loss) โดยไม่พึ่ง Scikit-learn / PyTorch / TensorFlow
+<div align="center">
+  <p>A binary network traffic classification system to detect normal behaviors and cyber-attacks.</p>
+</div>
 
-สิ่งที่รันได้จริงใน repo นี้:
+## 📌 Project Overview
+This project implements a Network Intrusion Detection System (NIDS) as a binary classifier (normal vs. attack) using the **NSL-KDD** dataset. The core model is a **Logistic Regression** built from scratch using NumPy with mini-batch gradient descent and class weight adjustments, completely independent of heavy ML frameworks like Scikit-learn, PyTorch, or TensorFlow.
 
-1. โหลด train/test จากไฟล์ดิบ NSL-KDD (`.txt` คอมมาแยกฟิลด์)
-2. แปลง categorical เป็น one-hot (`pandas.get_dummies`) แล้ว Z-score จากสถิติชุด train
-3. คำนวณ class weights จากความไม่สมดุลของคลาส แล้วฝึกโมเดล
-4. บันทึกน้ำหนัก (`saved_models/nids_weights.npz`) และสถานะ preprocessor (`.pkl`)
-5. ประเมินด้วย confusion components + precision / recall / F1 และรายงาน feature importance จากค่า weight
+The project structure adheres to the industry-standard **Cookiecutter Data Science** methodology to ensure reproducibility, scalability, and maintainability.
 
----
+## 🚀 Features
+- **Custom Logistic Regression**: Implemented purely in NumPy.
+- **Robust Preprocessing**: Handles categorical variable one-hot encoding and Z-score normalization based on training statistics.
+- **Class Imbalance Handling**: Automatically calculates and applies class weights during model training.
+- **Comprehensive Evaluation**: Generates confusion matrix components, precision, recall, F1-score, and feature importance.
+- **Cookiecutter Architecture**: Well-organized file and directory structure following global best practices for Data Science.
 
-## ภาพประกอบ (ภาพรวม)
+## 📂 Project Organization
 
-| Pipeline (main.py) | ตัวอย่างผล evaluation (จำนวนตัวอย่างต่อช่อง) |
+```text
+├── Makefile           <- Makefile with commands like `make data` or `make train`
+├── README.md          <- The top-level README for developers using this project.
+├── data
+│   ├── external       <- Data from third party sources.
+│   ├── interim        <- Intermediate data that has been transformed.
+│   ├── processed      <- The final, canonical data sets for modeling.
+│   └── raw            <- The original, immutable data dump (e.g., KDDTrain+.txt, KDDTest+.txt).
+│
+├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+│   └── images         <- Project images and visualizations
+│
+├── logs               <- Execution logs
+│
+├── models             <- Trained and serialized models, model predictions, or model summaries
+│
+├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
+│                         the creator's initials, and a short `-` delimited description, e.g.
+│                         `1.0-jqp-initial-data-exploration`.
+│
+├── pyproject.toml     <- Project configuration file
+│
+├── references         <- Data dictionaries, manuals, and all other explanatory materials.
+│
+├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
+│   └── figures        <- Generated graphics and figures to be used in reporting
+│
+├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
+│                         generated with `pip freeze > requirements.txt`
+│
+├── scripts            <- Standalone scripts (e.g., generate_readme_images.py, build_all_in_one_notebook.py)
+│
+├── src                <- Source code for use in this project.
+│   ├── __init__.py    <- Makes src a Python module
+│   ├── config.py      <- Configuration variables (paths, hyperparameters)
+│   │
+│   ├── data           <- Scripts to download or generate data
+│   │   └── preprocessing.py
+│   │
+│   ├── features       <- Scripts to turn raw data into features for modeling
+│   │   └── build_features.py
+│   │
+│   ├── models         <- Scripts to train models and then use trained models to make predictions
+│   │   ├── artifacts.py
+│   │   ├── metrics.py
+│   │   ├── model.py
+│   │   ├── predict_model.py
+│   │   └── train_model.py
+│   │
+│   └── visualization  <- Scripts to create exploratory and results oriented visualizations
+│       └── visualize.py
+│
+└── tests              <- Unit tests for the pipeline
+```
+
+## 📊 Visualizations
+
+| Pipeline Overview | Evaluation Summary |
 | :---: | :---: |
 | ![Pipeline overview](docs/images/pipeline_overview.png) | ![Evaluation counts](docs/images/evaluation_counts.png) |
 
-แท่งสีแดง (**FN** — missed attacks) ช่วยให้เห็นข้อจำกัดของ threshold / โมเดลเชิงเส้นในข้อมูลจริงได้ทันที
+> **Note**: The red bars (FN - missed attacks) provide immediate visual feedback on the limitations of thresholding and linear models in real-world scenarios.
 
----
+## ⚙️ Requirements & Installation
 
-## ตัวเลขอ้างอิงจากการรันจริง (เครื่องพัฒนา)
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd Network-Intrusion-Detection-System
 
-รันครั้งล่าสุดที่ใช้ยืนยัน README: `python main.py` บนชุด **KDDTrain+.txt** / **KDDTest+.txt** ใน `data/raw/` พร้อมค่าใน `config.py` ณ ขณะนั้น (`LEARNING_RATE=0.05`, `EPOCHS=50`, `BATCH_SIZE=128`, `DECISION_THRESHOLD=0.4`)
-
-| Metric | Value |
-|--------|------:|
-| TP (caught attacks) | 8088 |
-| TN (normal) | 8943 |
-| FP (false alarms) | 768 |
-| FN (missed attacks) | 4745 |
-| Precision | 0.9133 |
-| Recall | 0.6303 |
-| F1-score | 0.7458 |
-
-ค่าจะเปลี่ยนตาม threshold, epoch, learning rate และการสุ่มลำดับ mini-batch
-
----
-
-## Tech stack และข้อจำกัด
-
-| รายการ | รายละเอียด |
-|--------|------------|
-| ภาษา | Python 3.x |
-| ไลบรารีหลัก | `numpy`, `pandas` (pandas ใช้หนักที่ขั้นโหลด/ one-hot) |
-| ห้ามใช้ (ตามสเปกโปรเจกต์) | `scikit-learn`, `xgboost`, `tensorflow`, `pytorch` |
-| โมเดล | `BinaryLogisticRegression` ใน `src/model.py` |
-
-สคริปต์ `scripts/generate_readme_images.py` ใช้ **matplotlib** เฉพาะตอนสร้างภาพใน `docs/images/` ไม่ได้เป็นส่วนของ pipeline ฝึกโมเดล
-
----
-
-## ความต้องการของระบบและการติดตั้ง
-
-```text
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-ไฟล์ดิบ NSL-KDD วางที่ `data/raw/KDDTrain+.txt` และ `data/raw/KDDTest+.txt` (ปรับ path ได้ที่ `config.py`)
+> Ensure you have the NSL-KDD raw data files `KDDTrain+.txt` and `KDDTest+.txt` placed in the `data/raw/` directory.
 
-รัน pipeline ทั้งก้อน:
+## 💻 Usage
 
-```text
+To run the full pipeline (load, preprocess, train, evaluate, and save):
+
+```bash
 python main.py
 ```
 
-- Log ไฟล์อยู่ในโฟลเดอร์ `logs/`
-- น้ำหนักและ preprocessor อยู่ใน `saved_models/`
+*   **Logs**: Check the `logs/` directory for detailed execution logs.
+*   **Model Weights**: Saved in the `models/` directory (e.g., `.npz` weights and `.pkl` preprocessor states).
 
-สร้างภาพ README ใหม่ (ต้องติดตั้ง matplotlib แยก):
-
-```text
+To generate README images (requires `matplotlib`):
+```bash
 pip install matplotlib
 python scripts/generate_readme_images.py
 ```
 
-บน Windows ถ้าเทอร์มินัลยังแสดง emoji ไม่ครบ ให้ตั้ง `PYTHONUTF8=1` หรือใช้เทอร์มินัลที่รองรับ UTF-8; โค้ดจะพยายาม `reconfigure` stdout/stderr เป็น UTF-8 เมื่อเริ่ม `main.py`
+## 🧪 Evaluation Metrics
 
----
+Reference results from running `main.py` on the **KDDTrain+.txt** and **KDDTest+.txt** datasets using standard hyperparameters (`LEARNING_RATE=0.05`, `EPOCHS=50`, `BATCH_SIZE=128`, `DECISION_THRESHOLD=0.4`):
 
-## โครงสร้างโปรเจกต์ (ปัจจุบัน)
+| Metric | Value |
+|--------|------:|
+| **True Positives (caught attacks)** | 8,088 |
+| **True Negatives (normal)** | 8,943 |
+| **False Positives (false alarms)** | 768 |
+| **False Negatives (missed attacks)** | 4,745 |
+| **Precision** | 0.9133 |
+| **Recall** | 0.6303 |
+| **F1-score** | 0.7458 |
 
-```text
-├── config.py              # path ข้อมูล, hyperparameters, threshold
-├── main.py                # orchestrator: โหลด → scale → train → save → evaluate
-├── requirements.txt       # numpy, pandas
-├── scripts/
-│   ├── generate_readme_images.py
-│   └── build_all_in_one_notebook.py
-├── notebooks/
-│   └── NIDS_All_In_One.ipynb   # สร้าง/ซิงก์จาก src ด้วย scripts/build_all_in_one_notebook.py
-├── docs/
-│   └── images/            # ภาพประกอบ README
-├── data/
-│   └── raw/               # NSL-KDD (.txt); มีสำเนาใต้ data/raw/nsl-kdd/ ด้วย
-├── src/
-│   ├── preprocessing.py   # IntrusionDatasetPreprocessor
-│   ├── model.py           # BinaryLogisticRegression (NumPy)
-│   ├── metrics.py         # BinaryClassifierMetrics
-│   └── artifacts.py       # ArtifactStore — log, save/load weights & preprocessor
-├── logs/                  # log รันล่าสุด (สร้างเมื่อรัน)
-└── saved_models/          # .npz weights + preprocessor .pkl (สร้างเมื่อรัน)
-```
+*Note: Results may vary based on hyperparameter tuning, thresholds, and mini-batch sampling.*
 
----
+## 🛠️ Technology Stack
 
-## Commit messages
+- **Language:** Python 3.x
+- **Core Libraries:** `numpy`, `pandas` (used primarily for data loading and encoding)
+- **Constraints:** No `scikit-learn`, `xgboost`, `tensorflow`, or `pytorch` allowed per project specifications.
 
-ใช้แนว **Conventional Commits**: `type(scope): subject` เช่น `feat(model): ...`, `docs(readme): ...`, `fix(metrics): ...`
+## 📝 Commit Guidelines
 
----
-
-## แหล่งข้อมูล
-
-- NSL-KDD เป็น benchmark ที่ใช้กันแพร่หลายในงานวิจัยด้าน intrusion detection; รายละเอียดฟิลด์และความหมายของค่า label ดูจากเอกสารชุดข้อมูลต้นทาง
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
+Examples:
+- `feat(model): add class weights`
+- `docs(readme): update project structure`
+- `fix(metrics): resolve division by zero in recall`
+- `refactor(src): adopt cookiecutter data science standard`

@@ -2,6 +2,7 @@
 สร้างภาพประกอบ README (รันแยกจาก pipeline หลัก — ใช้ matplotlib)
 Usage: pip install matplotlib && python scripts/generate_readme_images.py
 """
+
 from __future__ import annotations
 
 import os
@@ -30,7 +31,13 @@ def main() -> None:
     ax.set_ylabel("Count")
     ax.set_title("Binary classifier evaluation — confusion components (KDDTest+)")
     for b, v in zip(bars, values):
-        ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 80, str(v), ha="center", fontsize=11)
+        ax.text(
+            b.get_x() + b.get_width() / 2,
+            b.get_height() + 80,
+            str(v),
+            ha="center",
+            fontsize=11,
+        )
     ax.set_ylim(0, max(values) * 1.12)
     fig.tight_layout()
     fig.savefig(os.path.join(OUT_DIR, "evaluation_counts.png"), dpi=150)
@@ -72,7 +79,9 @@ def main() -> None:
     ax.set_ylim(0, 1)
     ax.set_title("End-to-end pipeline (main.py)", loc="left", fontsize=11)
     fig.tight_layout()
-    fig.savefig(os.path.join(OUT_DIR, "pipeline_overview.png"), dpi=150, bbox_inches="tight")
+    fig.savefig(
+        os.path.join(OUT_DIR, "pipeline_overview.png"), dpi=150, bbox_inches="tight"
+    )
     plt.close(fig)
 
     print(f"Wrote images to {OUT_DIR}")

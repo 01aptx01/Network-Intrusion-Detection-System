@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "network_intrusion_detection_system"
+version = "0.1.0"
+description = "Network Intrusion Detection System"
+authors = [
+    {name = "Your Name"}
+]
+dependencies = [
+    # list dependencies here or use requirements.txt
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
